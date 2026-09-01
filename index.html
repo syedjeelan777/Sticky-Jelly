@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#2a1f3d" />
+  <title>Sticky Jelly — a glooping grid puzzle</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫐</text></svg>" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ============================ OVERWORLD ============================ -->
+    <section id="screen-overworld" class="screen">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-emoji">🍮</span>
+          <div class="brand-text">
+            <h1>Sticky&nbsp;Jelly</h1>
+            <p class="tagline">A glooping grid-logic puzzle</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span id="overworld-progress" class="chip" title="Levels solved"></span>
+          <button id="btn-colorblind" class="icon-btn" title="Colorblind mode (adds shape cues)">👁️</button>
+          <button id="btn-mute" class="icon-btn" title="Toggle sound">🔊</button>
+        </div>
+      </header>
+
+      <main class="overworld-body">
+        <p class="intro">
+          Push the <strong>jellies</strong> onto their goals. Each color behaves differently —
+          sticky jellies <em>gloop together</em>, rigid ones <em>never fall</em>, squishy ones
+          <em>drip down</em>, and bouncy ones <em>slide</em>. Mind the fire, weight the plates,
+          and open the gates.
+        </p>
+        <div id="worlds" class="worlds"></div>
+
+        <h2 class="section-title">Custom levels <span class="muted">(from the editor)</span></h2>
+        <div id="custom-levels" class="custom-levels">
+          <p class="empty-hint">No custom levels yet — open the editor to build one.</p>
+        </div>
+      </main>
+
+      <footer class="overworld-footer">
+        <button id="btn-open-editor" class="btn btn-primary">🧪 Open Level Editor</button>
+        <span class="muted">Arrow keys / WASD to move · click a jelly to select · 300+ levels</span>
+      </footer>
+    </section>
+
+    <!-- ============================== GAME ============================== -->
+    <section id="screen-game" class="screen hidden">
+      <header class="topbar game-bar">
+        <button id="btn-game-back" class="btn btn-ghost">← Back</button>
+        <div class="level-title">
+          <span id="game-world" class="chip chip-world"></span>
+          <h2 id="game-title"></h2>
+        </div>
+        <div class="topbar-actions">
+          <span id="game-moves" class="chip" title="Moves">0 moves</span>
+          <span id="game-best" class="chip chip-gold" title="Your best"></span>
+          <button id="btn-hint" class="icon-btn" title="Get a hint">💡</button>
+          <button id="btn-undo" class="icon-btn" title="Undo (Z)">↩️</button>
+          <button id="btn-reset" class="icon-btn" title="Reset level">🔄</button>
+          <button id="btn-game-mute" class="icon-btn" title="Toggle sound">🔊</button>
+        </div>
+      </header>
+
+      <main class="game-body">
+        <div class="board-wrap">
+          <canvas id="game-canvas"></canvas>
+        </div>
+        <aside class="side-panel">
+          <div class="legend" id="legend"></div>
+          <p class="hint" id="game-hint"></p>
+          <div class="dpad" id="dpad">
+            <button class="dpad-btn" data-dir="up">▲</button>
+            <div class="dpad-row">
+              <button class="dpad-btn" data-dir="left">◀</button>
+              <button class="dpad-btn" data-dir="down">▼</button>
+              <button class="dpad-btn" data-dir="right">▶</button>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </section>
+
+    <!-- ============================== EDITOR ============================= -->
+    <section id="screen-editor" class="screen hidden">
+      <header class="topbar editor-bar">
+        <button id="btn-editor-back" class="btn btn-ghost">← Back</button>
+        <h2>Level Editor</h2>
+        <div class="topbar-actions editor-actions">
+          <button id="btn-ed-undo" class="icon-btn" title="Undo (Ctrl+Z)">↩️</button>
+          <button id="btn-ed-redo" class="icon-btn" title="Redo">↪️</button>
+          <button id="btn-ed-validate" class="btn btn-ghost" title="Check the level is solvable">✓ Validate</button>
+          <button id="btn-ed-play" class="btn btn-primary" title="Playtest this level">▶ Test Play</button>
+        </div>
+      </header>
+
+      <main class="editor-body">
+        <div class="palette" id="palette"></div>
+        <div class="editor-stage">
+          <div class="board-wrap">
+            <canvas id="editor-canvas"></canvas>
+          </div>
+          <div class="editor-status" id="editor-status">Select a tool, then click or drag on the grid.</div>
+          <div class="editor-toolbar">
+            <button id="btn-ed-new" class="btn btn-ghost">New size</button>
+            <button id="btn-ed-clear" class="btn btn-ghost">Clear</button>
+            <button id="btn-ed-import" class="btn btn-ghost">Import</button>
+            <button id="btn-ed-export" class="btn btn-ghost">Export / Share</button>
+            <button id="btn-ed-save" class="btn btn-primary">💾 Save to Custom</button>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- ============================== OVERLAY ============================= -->
+    <div id="overlay" class="overlay hidden">
+      <div class="overlay-card">
+        <h2 id="overlay-title"></h2>
+        <p id="overlay-sub"></p>
+        <div class="overlay-actions" id="overlay-actions"></div>
+      </div>
+    </div>
+
+    <!-- ============================== MODAL ============================== -->
+    <div id="modal" class="overlay hidden">
+      <div class="modal-card">
+        <h2 id="modal-title">Modal</h2>
+        <div id="modal-body"></div>
+        <div class="overlay-actions" id="modal-actions"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/engine.js"></script>
+  <script src="js/solver.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
